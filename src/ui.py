@@ -1,15 +1,10 @@
 import customtkinter as ctk
+from PIL import Image, ImageTk
 
-appName = "Agenda"
-theme = ""
+appName = "Agenda App"
+myGithub = "https://github/Jordanocr"
 
 # ====== Custom widgets =====
-class Label(ctk.CTk):
-    """ A pre-configured themed label widget. """
-    def __init__(self,**kwargs):
-        super().__init__(**kwargs)
-        """ Just configure based on my chosen theme colors! """
-
 class Blank(ctk.CTkLabel):
     """ A basic blank space widget ready to use. """
     def __init__(self,parent,py=0,px=0):
@@ -22,18 +17,42 @@ class MainMenu(ctk.CTk):
         super().__init__()
 
         # ====== Inicial settings ======
-        ctk.set_default_color_theme("dark-blue")
+        ctk.set_default_color_theme("src/ui_theme/NightTrain.json")
         ctk.set_appearance_mode("dark")
         self.title(appName)
-        self.geometry("600x400")
+        self.geometry("400x400")
+        self.resizable(False,False)
+
+        # ====== Image uploads ======
+        image = Image.open("src/images/create.png")
+        self.createAppointmentImage = ctk.CTkImage(image,size=(20,20))
+        image = Image.open("src/images/edit.png")
+        self.editAppointmentImage = ctk.CTkImage(image,size=(32,32))
+        image = Image.open("src/images/export.png")
+        self.exportBackupImage = ctk.CTkImage(image,size=(35,35))
 
         # ====== Widgets ======
         Blank(self)
 
-        self.titleLabel = ctk.CTkLabel(self,font=("Arial",18),text=appName)
-        self.titleLabel.pack()
+        self.createAppointmentButton = ctk.CTkButton(self,font=("Arial",20),text="Create appointment",
+                                                     width=200,height=40,corner_radius=30,image=self.createAppointmentImage,
+                                                     border_width=1)
+        self.createAppointmentButton.pack(pady=20)
 
-        Blank(self)
+        self.editAppointmentButton = ctk.CTkButton(self,font=("Arial",20),text="Edit appointments",
+                                                   width=200,height=40,corner_radius=30,image=self.editAppointmentImage,
+                                                   border_width=1)
+        self.editAppointmentButton.pack(pady=20)
+
+        self.exportBackupButton = ctk.CTkButton(self,font=("Arial",20),text="Export backup",
+                                                width=240,height=40,corner_radius=30,image=self.exportBackupImage,
+                                                border_width=1)
+        self.exportBackupButton.pack(pady=20)
+
+        self.githubLabel = ctk.CTkButton(self,font=("Arial",16),text=myGithub,
+                                         width=140,height=28,corner_radius=30,fg_color="transparent",
+                                         border_width=1)
+        self.githubLabel.pack(pady=45)
 
 if __name__ == "__main__":
     MainMenu().mainloop()
