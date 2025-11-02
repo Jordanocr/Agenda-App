@@ -182,15 +182,3 @@ class App():
 
 if __name__ == "__main__":
     App().menu()
-
-"""
-oooooooooo.                 ooooooooo.                            o8o           oooo                           
-`888'   `Y8b                `888   `Y88.                          `"'           `888                           
- 888     888 oooo    ooo     888   .d88' oooo  oooo  ooo. .oo.   oooo   .oooo.o  888 .oo.    .ooooo.  oooo d8b 
- 888oooo888'  `88.  .8'      888ooo88P'  `888  `888  `888P"Y88b  `888  d88(  "8  888P"Y88b  d88' `88b `888""8P 
- 888    `88b   `88..8'       888          888   888   888   888   888  `"Y88b.   888   888  888ooo888  888     
- 888    .88P    `888'        888          888   888   888   888   888  o.  )88b  888   888  888    .o  888     
-o888bood8P'      .8'        o888o         `V88V"V8P' o888o o888o o888o 8""888P' o888o o888o `Y8bod8P' d888b    
-             .o..P'                                                                                            
-             `Y8P'  
-"""
