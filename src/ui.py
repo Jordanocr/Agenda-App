@@ -1,8 +1,9 @@
 import customtkinter as ctk
-from PIL import Image, ImageTk
+import webbrowser
+from PIL import Image,ImageTk
 
 appName = "Agenda App"
-myGithub = "https://github/Jordanocr"
+credits = "By Jordanocr"
 
 # ====== Custom widgets =====
 class Blank(ctk.CTkLabel):
@@ -22,8 +23,14 @@ class MainMenu(ctk.CTk):
         self.title(appName)
         self.geometry("400x400")
         self.resizable(False,False)
+        try:
+            self.iconbitmap("src/images/icon.ico")
+        except Exception:
+            icon_image = Image.open("src/images/icon.png")
+            self.icon = ImageTk.PhotoImage(icon_image)
+            self.iconphoto(True,self.icon)
 
-        # ====== Image uploads ======
+        # ====== Image load setup ======
         image = Image.open("src/images/create.png")
         self.createAppointmentImage = ctk.CTkImage(image,size=(20,20))
         image = Image.open("src/images/edit.png")
@@ -49,10 +56,13 @@ class MainMenu(ctk.CTk):
                                                 border_width=1)
         self.exportBackupButton.pack(pady=20)
 
-        self.githubLabel = ctk.CTkButton(self,font=("Arial",16),text=myGithub,
-                                         width=140,height=28,corner_radius=30,fg_color="transparent",
-                                         border_width=1)
+        self.githubLabel = ctk.CTkButton(self,font=("Arial",16),text=credits,
+                                         width=140,height=28,corner_radius=30,fg_color="transparent",border_width=1,
+                                         hover_color="#3b3b3b",command=self.openGithub)
         self.githubLabel.pack(pady=45)
+
+    def openGithub(self):
+        webbrowser.open("https://github.com/Jordanocr")
 
 if __name__ == "__main__":
     MainMenu().mainloop()
