@@ -14,6 +14,7 @@ class Blank(ctk.CTkLabel):
 
 # ====== UI screens ======
 class MainMenu(ctk.CTk):
+    """ Main menu interface. """
     def __init__(self):
         super().__init__()
 
@@ -23,12 +24,18 @@ class MainMenu(ctk.CTk):
         self.title(appName)
         self.geometry("400x400")
         self.resizable(False,False)
+        self.configure(fg_color="#030515")
+
+        # ====== Cross-platform window icon ======
         try:
+            # Windows requires .ico.
             self.iconbitmap("src/images/icon.ico")
         except Exception:
+            # Linux and MacOS requires png.
             icon_image = Image.open("src/images/icon.png")
-            self.icon = ImageTk.PhotoImage(icon_image)
-            self.iconphoto(True,self.icon)
+            self.icon_photo = ImageTk.PhotoImage(icon_image)
+            # Slight delay so the window manager recognizes it.
+            self.after(100, lambda: self.iconphoto(True, self.icon_photo))
 
         # ====== Image load setup ======
         image = Image.open("src/images/create.png")
@@ -43,7 +50,7 @@ class MainMenu(ctk.CTk):
 
         self.createAppointmentButton = ctk.CTkButton(self,font=("Arial",20),text="Create appointment",
                                                      width=200,height=40,corner_radius=30,image=self.createAppointmentImage,
-                                                     border_width=1)
+                                                     border_width=1,command=lambda: self.openCreateAppointment(self))
         self.createAppointmentButton.pack(pady=20)
 
         self.editAppointmentButton = ctk.CTkButton(self,font=("Arial",20),text="Edit appointments",
@@ -61,8 +68,50 @@ class MainMenu(ctk.CTk):
                                          hover_color="#3b3b3b",command=self.openGithub)
         self.githubLabel.pack(pady=45)
 
+    def openCreateAppointment(self,parent):
+        parent.withdraw()
+        CreateAppointment(self)
+
     def openGithub(self):
         webbrowser.open("https://github.com/Jordanocr")
+
+class CreateAppointment(ctk.CTkToplevel):
+    """ Create appointment interface. """
+    def __init__(self,parent):
+        super().__init__(parent)
+
+        # ====== Inicial settings ======
+        self.title("Create appointment")
+        self.geometry("700x700")
+        self.parent = parent
+
+        # ====== Widgets ======
+        self.titleLabel = ctk.CTkLabel(self,font=("Arial",40),text="Create appointment")
+        self.titleLabel.pack(pady=10)
+
+        Blank(self,py=10)
+
+        self.nameEntry = ctk.CTkEntry(self,font=("Arial",20),placeholder_text="Name",width=300,height=30,corner_radius=30)
+        self.nameEntry.pack(pady=20)
+
+        self.descriptionLabel = ctk.CTkLabel(self,font=("Arial",20),text="Description")
+        self.descriptionLabel.pack(pady=5)
+
+        self.descriptionTextbox = ctk.CTkTextbox(self,font=("Arial",18),width=300,height=200,fg_color="#21244e",
+                                                 border_width=1,corner_radius=20)
+        self.descriptionTextbox.pack()
+
+        self.dateEntry = ctk.CTkEntry(self,font=("Arial",20),placeholder_text="Date (dd/mm/yyyy)")
+        self.dateEntry.pack(pady=10)
+
+        # ====== Protocols ======
+        self.protocol("WM_DELETE_WINDOW",self.openMenu)
+    
+    def openMenu(self):
+        self.parent.deiconify()
+        # Delays the deletion for safety reasons.
+        self.after(100,self.destroy)
+
 
 if __name__ == "__main__":
     MainMenu().mainloop()
