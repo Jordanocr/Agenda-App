@@ -9,5 +9,5 @@ Agenda app is a simple application made with Python programming language, along 
 - Create and edit appointments.
 - Set a reminder for each appointment.
 - Log every important event.
-- Save, export and backup data in different formats.
+- Save, export and import backup data in different formats.
 - Create and switch between multiple user profiles.

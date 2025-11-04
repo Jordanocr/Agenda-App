@@ -7,3 +7,9 @@ __pycache__/
 
 # Ignore database
 *.db
+
+# Ignore test files
+temporary.py
+
+# Ignore my notes
+notes.md

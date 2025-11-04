@@ -1,6 +1,7 @@
 import customtkinter as ctk
-import webbrowser
+import webbrowser,logic
 from PIL import Image,ImageTk
+
 
 appName = "Agenda App"
 credits = "By Jordanocr"
@@ -85,13 +86,14 @@ class MainMenu(ctk.CTk):
 
 class CreateAppointment(ctk.CTkToplevel):
     """ Create appointment interface. """
-    def __init__(self,parent):
+    def __init__(self,parent,edit=False):
         super().__init__(parent)
 
         # ====== Inicial settings ======
         self.title("Create appointment")
         self.geometry("700x700")
         self.parent = parent
+        self.edit = edit
 
         # ====== Widgets ======
         self.titleLabel = ctk.CTkLabel(self,font=("Arial",40),text="Create appointment")
@@ -116,6 +118,9 @@ class CreateAppointment(ctk.CTkToplevel):
         self.reminderSwitch = ctk.CTkCheckBox(self,font=("Arial",14),text="Set a reminder",command=self.onCheck)
         self.reminderSwitch.pack(pady=10)
 
+        self.saveButton = ctk.CTkButton(self,font=("Arial",18),text="Save",command=self.onSaveClick)
+        self.saveButton.pack(pady=10)
+
         # ====== Protocols ======
         self.protocol("WM_DELETE_WINDOW",self.openMenu)
     
@@ -133,13 +138,31 @@ class CreateAppointment(ctk.CTkToplevel):
 
     def showReminderOption(self):
         """ Shows the reminder option. """
-        self.reminderTimeEntry = ctk.CTkEntry(self,font=("Arial",18),placeholder_text="Time: HH/MM",width=300,height=30,
+        self.saveButton.destroy()
+
+        self.reminderTimeEntry = ctk.CTkEntry(self,font=("Arial",18),placeholder_text="Time: HH:MM",width=300,height=30,
                                               corner_radius=30)
         self.reminderTimeEntry.pack(pady=10)
+
+        self.saveButton = ctk.CTkButton(self,font=("Arial",18),text="Save",command=self.onSaveClick)
+        self.saveButton.pack(pady=10)
 
     def hideReminderOption(self):
         """ Hides the reminder option. """
         self.reminderTimeEntry.destroy()
+
+    def onSaveClick(self):
+        """ Opens a dialog to confirm and then calls the saveCall function. """
+        Dialog(self,title="Save appointment",text=("Are you sure you want to save this appointment?","Yes","No"),
+                          func=self.saveCall)
+    
+    def saveCall(self):
+        """ Calls the save appointment function from logic.py file. """
+        try:
+            logic.saveAppointment(self.edit)
+        except Exception:
+            Dialog(self,title="Error",text=("Something unexpected happened please try again, or reinstall the application.",
+                                            "Ok","Quit"),refusal=exit())
 
 class EditAppointment(ctk.CTkToplevel):
     """ Edit appointment interface. """
@@ -157,6 +180,38 @@ class EditAppointment(ctk.CTkToplevel):
     # ====== Methods & Commands ======
     def openMenu(self):
         self.parent.deiconify()
+        self.destroy()
+
+class Dialog(ctk.CTkToplevel):
+    """ A basic dialog window. """
+    def __init__(self,parent,title="Confirmation",text=("","Yes","No"),func=False,refusal=False):
+        super().__init__(parent)
+
+        # ====== Inicial settings ======
+        self.parent = parent
+        self.title(title)
+        self.geometry("600x150")
+        self.func = func or self.close
+
+        # ====== Widgets ======
+        self.textLabel = ctk.CTkLabel(self,font=("Arial Bold",20),text=text[0])
+        self.textLabel.pack(pady=10)
+
+        self.acceptButton = ctk.CTkButton(self,font=("Arial",20),text=text[1],
+                                          command=self.func)
+        self.acceptButton.pack(pady=5,padx=10,side="left")
+
+        self.refuseButton = ctk.CTkButton(self,font=("Arial",20),text=text[2],
+                                          command=self.close)
+        self.refuseButton.pack(pady=5,padx=10,side="right")
+
+        if refusal: self.refuseButton.configure(command=refusal)
+
+        # ====== Protocols ======
+        self.protocol("WM_DELETE_WINDOW",self.close)
+
+    # ====== Methods & Commands
+    def close(self):
         self.destroy()
 
 if __name__ == "__main__":
