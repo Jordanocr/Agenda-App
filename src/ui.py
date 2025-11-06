@@ -2,7 +2,6 @@ import customtkinter as ctk
 import webbrowser,logic
 from PIL import Image,ImageTk
 
-
 appName = "Agenda App"
 credits = "By Jordanocr"
 
@@ -23,9 +22,11 @@ class MainMenu(ctk.CTk):
         ctk.set_default_color_theme("src/ui_theme/NightTrain.json")
         ctk.set_appearance_mode("dark")
         self.title(appName)
-        self.geometry("400x400")
+        self.geometry("500x550")
         self.resizable(False,False)
         self.configure(fg_color="#030515")
+
+        self.profiles = ["Unnamed"]
 
         # ====== Cross-platform window icon ======
         try:
@@ -43,10 +44,15 @@ class MainMenu(ctk.CTk):
         self.createAppointmentImage = ctk.CTkImage(image,size=(20,20))
         image = Image.open("src/images/edit.png")
         self.editAppointmentImage = ctk.CTkImage(image,size=(32,32))
+        image = Image.open("src/images/info.png")
+        self.profileActivityImage = ctk.CTkImage(image,size=(20,20))
         image = Image.open("src/images/export.png")
         self.exportBackupImage = ctk.CTkImage(image,size=(35,35))
 
         # ====== Widgets ======
+        self.profileChooser = ctk.CTkOptionMenu(self,width=200,values=self.profiles)
+        self.profileChooser.pack(pady=10)
+
         Blank(self)
 
         self.createAppointmentButton = ctk.CTkButton(self,font=("Arial",20),text="Create appointment",
@@ -59,6 +65,11 @@ class MainMenu(ctk.CTk):
                                                    border_width=1,command=self.openEditAppointment)
         self.editAppointmentButton.pack(pady=20)
 
+        self.profileActivityButton = ctk.CTkButton(self,font=("Arial",20),text="Profile activity",
+                                                   width=240,height=40,corner_radius=30,image=self.profileActivityImage,
+                                                   border_width=1,command=self.openEditAppointment)
+        self.profileActivityButton.pack(pady=20)
+
         self.exportBackupButton = ctk.CTkButton(self,font=("Arial",20),text="Export backup",
                                                 width=240,height=40,corner_radius=30,image=self.exportBackupImage,
                                                 border_width=1)
@@ -67,7 +78,7 @@ class MainMenu(ctk.CTk):
         self.githubLabel = ctk.CTkButton(self,font=("Arial",16),text=credits,
                                          width=140,height=28,corner_radius=30,fg_color="transparent",border_width=1,
                                          hover_color="#3b3b3b",command=self.openGithub)
-        self.githubLabel.pack(pady=45)
+        self.githubLabel.pack(pady=60)
 
     # ====== Methods & Commands ======
     def openCreateAppointment(self):
@@ -153,17 +164,23 @@ class CreateAppointment(ctk.CTkToplevel):
 
     def onSaveClick(self):
         """ Opens a dialog to confirm and then calls the saveCall function. """
-        Dialog(self,title="Save appointment",text=("Are you sure you want to save this appointment?","Yes","No"),
+        text = ("Are you sure you want to save this appointment?","Yes","No")
+        self.dialog = Dialog(self,title="Save appointment",text=text,
                           func=self.saveCall)
     
     def saveCall(self):
-        """ Calls the save appointment function from logic.py file. """
+        """ Calls the save appointment function from logic.py file and destroys the dialog save window. """
+        self.dialog.destroy()
         try:
             logic.saveAppointment(self.edit)
         except Exception:
-            Dialog(self,title="Error",text=("Something unexpected happened please try again, or reinstall the application.",
-                                            "Ok","Quit"),refusal=exit())
-
+            self.errorCallback()
+        
+    def errorCallback(self):
+        """ Called by the logic.py file in case an error happens. """
+        text = "Something unexpected happened, please try again or reinstall the application."
+        Dialog(self,title="Error",text=(text,"Ok","Quit"),refusal=exit,geometry="850x150")
+        
 class EditAppointment(ctk.CTkToplevel):
     """ Edit appointment interface. """
     def __init__(self,parent):
@@ -184,14 +201,18 @@ class EditAppointment(ctk.CTkToplevel):
 
 class Dialog(ctk.CTkToplevel):
     """ A basic dialog window. """
-    def __init__(self,parent,title="Confirmation",text=("","Yes","No"),func=False,refusal=False):
+    def __init__(self,parent,title="Confirmation",text=("","Yes","No"),func=False,refusal=False,geometry="600x150"):
         super().__init__(parent)
 
-        # ====== Inicial settings ======
+        # ====== Constants ======
         self.parent = parent
-        self.title(title)
-        self.geometry("600x150")
         self.func = func or self.close
+
+        # ====== Inicial settings ======
+        self.title(title)
+        self.geometry(geometry)
+        self.resizable(False,False)
+        self.after(10,self.grab_set)
 
         # ====== Widgets ======
         self.textLabel = ctk.CTkLabel(self,font=("Arial Bold",20),text=text[0])
