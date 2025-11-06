@@ -18,6 +18,9 @@ class MainMenu(ctk.CTk):
     def __init__(self):
         super().__init__()
 
+        # ====== Attributes ======
+        self.profiles = logic.getUsers() or ["Unnamed"]
+
         # ====== Inicial settings ======
         ctk.set_default_color_theme("src/ui_theme/NightTrain.json")
         ctk.set_appearance_mode("dark")
@@ -25,8 +28,6 @@ class MainMenu(ctk.CTk):
         self.geometry("500x550")
         self.resizable(False,False)
         self.configure(fg_color="#030515")
-
-        self.profiles = ["Unnamed"]
 
         # ====== Cross-platform window icon ======
         try:
@@ -50,8 +51,19 @@ class MainMenu(ctk.CTk):
         self.exportBackupImage = ctk.CTkImage(image,size=(35,35))
 
         # ====== Widgets ======
-        self.profileChooser = ctk.CTkOptionMenu(self,width=200,values=self.profiles)
-        self.profileChooser.pack(pady=10)
+        self.profileFrame = ctk.CTkFrame(self,fg_color="#030515")
+        self.profileFrame.pack()
+
+        self.addButton = ctk.CTkButton(self.profileFrame,font=("Arial",15),text="+",width=25,
+                                       command=self.openCreateProfile)
+        self.addButton.pack(padx=5,side="left")
+
+        self.deleteButton = ctk.CTkButton(self.profileFrame,font=("Arial",15),text="x",width=25,
+                                       command=self.openDeleteProfile)
+        self.deleteButton.pack(padx=5,side="right")
+
+        self.profileChooser = ctk.CTkOptionMenu(self.profileFrame,width=150,values=self.profiles)
+        self.profileChooser.pack(pady=10,side="right")
 
         Blank(self)
 
@@ -81,6 +93,25 @@ class MainMenu(ctk.CTk):
         self.githubLabel.pack(pady=60)
 
     # ====== Methods & Commands ======
+    def openCreateProfile(self):
+        """ Opens the create profile interface and hides the main menu. """
+        self.withdraw()
+        CreateProfile(self)
+
+    def openDeleteProfile(self,boolean=False):
+        """ Deletes the selected profile. """
+        if not boolean:
+            message = "Are you sure you want to delete this profile and agenda?"
+            self.dialog = Dialog(self,text=(message,"Yes","No"),func=lambda: self.openDeleteProfile(True))
+        else:
+            profile = self.profileChooser.get()
+            if len(self.profileChooser._values) > 1:
+                self.deleteProfileCall(profile)
+            else:
+                self.dialog.destroy()
+                message = "Every user must have at least one active profile."
+                Dialog(self,title="Error",text=(message,"Ok"),geometry="600x100")    
+
     def openCreateAppointment(self):
         """ Opens the create appointment interface and hides the main menu. """
         self.withdraw()
@@ -95,24 +126,64 @@ class MainMenu(ctk.CTk):
         """ Opens the default browser and navigates to my GitHub profile. """
         webbrowser.open("https://github.com/Jordanocr")
 
+class CreateProfile(ctk.CTkToplevel):
+    """ Create profile interface. """
+    def __init__(self,parent):
+        super().__init__(parent)
+
+        # ====== Attributes ======
+        title = "Create profile"
+        self.parent = parent
+
+        # ====== Inicial settings ======
+        self.title(title)
+        self.geometry("400x200")
+        self.resizable(False,False)
+
+        # ====== Widgets ======
+        self.titleLabel = ctk.CTkLabel(self,font=("Arial",40),text=title)
+        self.titleLabel.pack(pady=10)
+
+        self.nameEntry = ctk.CTkEntry(self,font=("Arial",18),placeholder_text="Name",width=300,height=30,corner_radius=30)
+        self.nameEntry.pack(pady=10)
+
+        self.saveButton = ctk.CTkButton(self,font=("Arial",18),text="Save",command=self.onSaveClick)
+        self.saveButton.pack(pady=10)
+
+        # ====== Protocols ======
+        self.protocol("WM_DELETE_WINDOW",self.openMenu)
+
+    # ====== Methods & Commands ======
+    def openMenu(self):
+        """ Opens menu then destroys itself. """
+        self.parent.deiconify()
+        self.destroy()
+    
+    def onSaveClick(self):
+        """ Calls the saveCall function. """
+        pass
+
 class CreateAppointment(ctk.CTkToplevel):
     """ Create appointment interface. """
     def __init__(self,parent,edit=False):
         super().__init__(parent)
 
-        # ====== Inicial settings ======
-        self.title("Create appointment")
-        self.geometry("700x700")
+        # ====== Attributes ======
+        title = "Create appointment"
         self.parent = parent
         self.edit = edit
 
+        # ====== Inicial settings ======
+        self.title(title)
+        self.geometry("700x700")
+
         # ====== Widgets ======
-        self.titleLabel = ctk.CTkLabel(self,font=("Arial",40),text="Create appointment")
+        self.titleLabel = ctk.CTkLabel(self,font=("Arial",40),text=title)
         self.titleLabel.pack(pady=10)
 
         Blank(self,py=10)
 
-        self.nameEntry = ctk.CTkEntry(self,font=("Arial",18),placeholder_text="Name:",width=300,height=30,corner_radius=30)
+        self.nameEntry = ctk.CTkEntry(self,font=("Arial",18),placeholder_text="Name",width=300,height=30,corner_radius=30)
         self.nameEntry.pack(pady=10)
 
         self.descriptionLabel = ctk.CTkLabel(self,font=("Arial",18),text="Description:")
@@ -122,7 +193,7 @@ class CreateAppointment(ctk.CTkToplevel):
                                                  border_width=1,corner_radius=20)
         self.descriptionTextbox.pack()
 
-        self.dateEntry = ctk.CTkEntry(self,font=("Arial",18),placeholder_text="Date: DD/MM/YYYY",width=300,height=30,
+        self.dateEntry = ctk.CTkEntry(self,font=("Arial",18),placeholder_text="Date DD/MM/YYYY",width=300,height=30,
                                       corner_radius=30)
         self.dateEntry.pack(pady=20)
 
@@ -137,6 +208,7 @@ class CreateAppointment(ctk.CTkToplevel):
     
     # ====== Methods & Commands ======
     def openMenu(self):
+        """ Opens menu then destroys itself. """
         self.parent.deiconify()
         self.destroy()
 
@@ -186,16 +258,20 @@ class EditAppointment(ctk.CTkToplevel):
     def __init__(self,parent):
         super().__init__(parent)
 
-        # ====== Inicial settings ======
-        self.title("Edit appointment")
-        self.geometry("700x700")
+        # ====== Attributes ======
+        title = "Edit appointment"
         self.parent = parent
+
+        # ====== Inicial settings ======
+        self.title(title)
+        self.geometry("700x700")
 
         # ====== Protocols ======
         self.protocol("WM_DELETE_WINDOW",self.openMenu)
     
     # ====== Methods & Commands ======
     def openMenu(self):
+        """ Opens menu then destroys itself. """
         self.parent.deiconify()
         self.destroy()
 
@@ -204,7 +280,7 @@ class Dialog(ctk.CTkToplevel):
     def __init__(self,parent,title="Confirmation",text=("","Yes","No"),func=False,refusal=False,geometry="600x150"):
         super().__init__(parent)
 
-        # ====== Constants ======
+        # ====== Attributes ======
         self.parent = parent
         self.func = func or self.close
 
@@ -220,19 +296,26 @@ class Dialog(ctk.CTkToplevel):
 
         self.acceptButton = ctk.CTkButton(self,font=("Arial",20),text=text[1],
                                           command=self.func)
-        self.acceptButton.pack(pady=5,padx=10,side="left")
+        self.acceptButton.pack(pady=5,padx=10)
 
-        self.refuseButton = ctk.CTkButton(self,font=("Arial",20),text=text[2],
-                                          command=self.close)
-        self.refuseButton.pack(pady=5,padx=10,side="right")
+        if len(text) >= 3:
+            """ Creates the refuse button if not configured beforehand and
+            repacks the accept button as non-unique confirmation button. """
 
-        if refusal: self.refuseButton.configure(command=refusal)
+            self.acceptButton.pack_configure(pady=5,padx=10,side="left")
+
+            self.refuseButton = ctk.CTkButton(self,font=("Arial",20),text=text[2],
+                                            command=self.close)
+            self.refuseButton.pack(pady=5,padx=10,side="right")
+
+            if refusal: self.refuseButton.configure(command=refusal)
 
         # ====== Protocols ======
         self.protocol("WM_DELETE_WINDOW",self.close)
 
     # ====== Methods & Commands
     def close(self):
+        """ Destroys itself. """
         self.destroy()
 
 if __name__ == "__main__":
