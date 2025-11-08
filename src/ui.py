@@ -1,5 +1,6 @@
 import customtkinter as ctk
-import webbrowser,logic
+from CTkTable import *
+import webbrowser,logic,random
 from PIL import Image,ImageTk
 
 appName = "Agenda App"
@@ -19,7 +20,7 @@ class MainMenu(ctk.CTk):
         super().__init__()
 
         # ====== Attributes ======
-        self.profiles = logic.getUsers() or ["Unnamed"]
+        self.profiles = logic.getUsers()
 
         # ====== Inicial settings ======
         ctk.set_default_color_theme("src/ui_theme/NightTrain.json")
@@ -109,7 +110,7 @@ class MainMenu(ctk.CTk):
                 self.deleteProfileCall(profile)
             else:
                 self.dialog.destroy()
-                message = "Every user must have at least one active profile."
+                message = "You must have at least one active profile."
                 Dialog(self,title="Error",text=(message,"Ok"),geometry="600x100")    
 
     def openCreateAppointment(self):
@@ -175,7 +176,7 @@ class CreateAppointment(ctk.CTkToplevel):
 
         # ====== Inicial settings ======
         self.title(title)
-        self.geometry("700x700")
+        self.geometry("700x650")
 
         # ====== Widgets ======
         self.titleLabel = ctk.CTkLabel(self,font=("Arial",40),text=title)
@@ -183,17 +184,17 @@ class CreateAppointment(ctk.CTkToplevel):
 
         Blank(self,py=10)
 
-        self.nameEntry = ctk.CTkEntry(self,font=("Arial",18),placeholder_text="Name",width=300,height=30,corner_radius=30)
+        self.nameEntry = ctk.CTkEntry(self,font=("Arial",18),placeholder_text="Name",width=400,height=30,corner_radius=30)
         self.nameEntry.pack(pady=10)
 
-        self.descriptionLabel = ctk.CTkLabel(self,font=("Arial",18),text="Description:")
-        self.descriptionLabel.pack(pady=5)
+        self.descriptionLabel = ctk.CTkLabel(self,font=("Arial",16),text="Description:")
+        self.descriptionLabel.pack(pady=5,padx=170,anchor="nw")
 
-        self.descriptionTextbox = ctk.CTkTextbox(self,font=("Arial",16),width=400,height=200,fg_color="#21244e",
+        self.descriptionTextbox = ctk.CTkTextbox(self,font=("Arial",14),width=400,height=200,fg_color="#21244e",
                                                  border_width=1,corner_radius=20)
         self.descriptionTextbox.pack()
 
-        self.dateEntry = ctk.CTkEntry(self,font=("Arial",18),placeholder_text="Date DD/MM/YYYY",width=300,height=30,
+        self.dateEntry = ctk.CTkEntry(self,font=("Arial",18),placeholder_text="Date DD/MM/YYYY",width=400,height=30,
                                       corner_radius=30)
         self.dateEntry.pack(pady=20)
 
@@ -221,9 +222,9 @@ class CreateAppointment(ctk.CTkToplevel):
 
     def showReminderOption(self):
         """ Shows the reminder option. """
-        self.saveButton.destroy()
+        self.saveButton.pack_forget()
 
-        self.reminderTimeEntry = ctk.CTkEntry(self,font=("Arial",18),placeholder_text="Time: HH:MM",width=300,height=30,
+        self.reminderTimeEntry = ctk.CTkEntry(self,font=("Arial",18),placeholder_text="Time HH:MM",width=400,height=30,
                                               corner_radius=30)
         self.reminderTimeEntry.pack(pady=10)
 
@@ -264,7 +265,37 @@ class EditAppointment(ctk.CTkToplevel):
 
         # ====== Inicial settings ======
         self.title(title)
-        self.geometry("700x700")
+        self.geometry("700x650")
+        self.withdraw() # So that it can load everything first
+
+        # ====== Widgets ======
+        self.titleLabel = ctk.CTkLabel(self,font=("Arial",40),text=title)
+        self.titleLabel.pack(pady=10)
+
+        listValues = [["Name","Date","Time"],
+                      ["A","07/11/2025","21:51"],
+                      ["B","08/11/2025","22:30"],
+                      ["C","09/11/2025","23:00"]]
+        self.nameValues = []
+
+        for value in listValues:
+            if value[0] != "Name":
+                self.nameValues.append(value[0])
+
+        self.tableFrame = ctk.CTkScrollableFrame(self,width=400,height=400,fg_color="#030515")
+        self.tableFrame.pack(pady=10)
+
+        self.appointmentTable = CTkTable(self.tableFrame,values=listValues,width=140,height=40,header_color="#21244e")
+        self.appointmentTable.pack(pady=10)
+
+        self.editComboBox = ctk.CTkComboBox(self,values=self.nameValues)
+        self.editComboBox.pack(pady=20)
+
+        self.editButton = ctk.CTkButton(self,font=("Arial",18),text="Edit or View")
+        self.editButton.pack(pady=20)
+
+        self.update_idletasks() # Guarantees that the widgets are packed geometrically before showing the window.
+        self.deiconify()
 
         # ====== Protocols ======
         self.protocol("WM_DELETE_WINDOW",self.openMenu)
@@ -274,6 +305,13 @@ class EditAppointment(ctk.CTkToplevel):
         """ Opens menu then destroys itself. """
         self.parent.deiconify()
         self.destroy()
+    
+    def editAppointment(self,appointmentName):
+        if appointmentName in self.nameValues:
+            edit = logic.getAppointment(appointmentName)
+            CreateAppointment()
+        else:
+            pass
 
 class Dialog(ctk.CTkToplevel):
     """ A basic dialog window. """
